@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -33,6 +34,12 @@ func NewClient(cfg providerConfig) (*Client, error) {
 	transport := &http.Transport{}
 	if cfg.Insecure {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402
+	} else if strings.TrimSpace(cfg.CACert) != "" {
+		pool := x509.NewCertPool()
+		if !pool.AppendCertsFromPEM([]byte(cfg.CACert)) {
+			return nil, fmt.Errorf("invalid ca_cert PEM")
+		}
+		transport.TLSClientConfig = &tls.Config{RootCAs: pool}
 	}
 
 	return &Client{

@@ -19,15 +19,9 @@ provider "wiredoor" {
 module "gateway" {
   source = "../../module"
 
-  endpoint = var.endpoint
-  username = var.username
-  password = var.password
-  insecure = var.insecure
-
   node_name  = var.node_name
   node_addr  = var.node_addr
   http_name  = var.http_name
   http_path  = var.http_path
   http_port  = var.http_port
 }
-

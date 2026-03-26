@@ -85,6 +85,18 @@ func TestClientGetConfig(t *testing.T) {
 	}
 }
 
+func TestNewClientRejectsInvalidCACert(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewClient(providerConfig{
+		Endpoint: "https://wiredoor.example.com",
+		CACert:   "not-a-pem",
+	})
+	if err == nil {
+		t.Fatal("expected invalid ca_cert error")
+	}
+}
+
 func TestClientGetPATScansNodeTokens(t *testing.T) {
 	t.Parallel()
 
