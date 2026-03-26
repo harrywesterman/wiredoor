@@ -1,6 +1,7 @@
 import config from '../../config';
 import { Domain, SSLTermination } from '../../database/models/domain';
 import ServerUtils from '../../utils/server';
+import DomainUtils from '../../utils/domain-utils';
 import { NginxLocationConf } from './conf/nginx-location-conf';
 import { NginxServerConf } from './conf/nginx-server-conf';
 import { NginxService } from './nginx-service';
@@ -9,6 +10,7 @@ import { SSLManager } from './ssl-manager';
 export class NginxDomainService extends NginxService {
   async create(domain: Domain, restart = true): Promise<boolean> {
     const domainName = domain.domain;
+    const filesystemDomainKey = DomainUtils.getFilesystemDomainKey(domainName);
 
     const serverConf = new NginxServerConf();
 
@@ -23,8 +25,10 @@ export class NginxDomainService extends NginxService {
 
     serverConf
       .setServerName(domainName)
-      .setAccessLog(ServerUtils.getLogFilePath(domainName, 'access.log'))
-      .setErrorLog(ServerUtils.getLogFilePath(domainName, 'error.log'))
+      .setAccessLog(
+        ServerUtils.getLogFilePath(filesystemDomainKey, 'access.log'),
+      )
+      .setErrorLog(ServerUtils.getLogFilePath(filesystemDomainKey, 'error.log'))
       .setHttpSSLCertificates(domain.sslPair)
       .setDefaultPages();
 
@@ -80,9 +84,9 @@ export class NginxDomainService extends NginxService {
       );
     }
 
-    serverConf.includeLocations(`${domainName}/*.conf`);
+    serverConf.includeLocations(`${filesystemDomainKey}/*.conf`);
 
-    const confFile = `/etc/nginx/conf.d/${domainName}.conf`;
+    const confFile = `/etc/nginx/conf.d/${filesystemDomainKey}.conf`;
     await this.saveFile(confFile, serverConf.getNginxConf());
 
     await this.addDefaultMainLocation(domainName);
@@ -90,9 +94,14 @@ export class NginxDomainService extends NginxService {
     return this.checkAndReload(confFile, restart);
   }
 
-  async remove(domain: Domain, restart = true): Promise<void> {
+  async remove(
+    domain: Domain,
+    restart = true,
+    deleteCertificate = true,
+  ): Promise<void> {
     const domainName = domain.domain;
-    await this.removeFile(`/etc/nginx/conf.d/${domainName}.conf`);
+    const filesystemDomainKey = DomainUtils.getFilesystemDomainKey(domainName);
+    await this.removeFile(`/etc/nginx/conf.d/${filesystemDomainKey}.conf`);
 
     if (domain.ssl === 'self-signed') {
       const certPath = SSLManager.getCertPath(
@@ -102,10 +111,10 @@ export class NginxDomainService extends NginxService {
 
       await this.removeDir(certPath);
     } else {
-      await SSLManager.deleteCertbotCertificate(domainName);
+      await SSLManager.deleteCertbotCertificate(domainName, deleteCertificate);
     }
 
-    await this.removeDir(ServerUtils.getLogsDir(domainName));
+    await this.removeDir(ServerUtils.getLogsDir(filesystemDomainKey));
 
     if (restart) {
       await this.reloadNginx();

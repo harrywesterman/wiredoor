@@ -6,6 +6,7 @@ import { HttpService } from '../../database/models/http-service';
 import { TcpService } from '../../database/models/tcp-service';
 import { NginxLocationConf } from './conf/nginx-location-conf';
 import { Logger } from '../../logger';
+import DomainUtils from '../../utils/domain-utils';
 
 export abstract class NginxService {
   protected async saveFile(path: string, content: string): Promise<void> {
@@ -61,7 +62,8 @@ export abstract class NginxService {
   }
 
   protected getLocationFile(domain?: string, path = '/'): string {
-    const basePath = `/etc/nginx/locations/${domain && domain !== '_' ? domain : 'default'}`;
+    const baseKey = DomainUtils.getFilesystemDomainKey(domain);
+    const basePath = `/etc/nginx/locations/${baseKey}`;
     FileManager.mkdirSync(basePath);
 
     let transformed = path.replace(/^\//, '');

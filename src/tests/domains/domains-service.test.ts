@@ -17,6 +17,8 @@ import { makeDomainData } from './stubs/domain.stub';
 import { PagedData } from '../../repositories/filters/repository-query-filter';
 import { Domain } from '../../database/models/domain';
 import { SSLManager } from '../../services/proxy-server/ssl-manager';
+import DomainUtils from '../../utils/domain-utils';
+import FileManager from '../../utils/file-manager';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
@@ -306,11 +308,22 @@ describe('Domains Service', () => {
 
       try {
         const result = await service.createDomainIfNotExists(data.domain);
+        const filesystemDomainKey = DomainUtils.getFilesystemDomainKey(
+          data.domain,
+        );
 
         expect(result.domain).toEqual(data.domain);
         expect(result.ssl).toEqual('certbot');
         expect(result.sslPair.fullchain).toEqual(
           '/etc/letsencrypt/live/example.com/fullchain.pem',
+        );
+        expect(mockSaveToFile).toHaveBeenCalledWith(
+          `/etc/nginx/conf.d/${filesystemDomainKey}.conf`,
+          expect.stringContaining(` ${data.domain};`),
+        );
+        expect(mockSaveToFile).toHaveBeenCalledWith(
+          `/etc/nginx/locations/${filesystemDomainKey}/__main.conf`,
+          expect.stringContaining(`root /etc/nginx/default_pages;`),
         );
         expect(dnsService.createRecord).toHaveBeenCalledWith({
           name: '*.example.com',
@@ -361,6 +374,44 @@ describe('Domains Service', () => {
           ],
         },
       });
+    });
+
+    it('should expand an existing apex lineage to include the wildcard SAN', async () => {
+      const readFileSpy = jest
+        .spyOn(FileManager, 'readFile')
+        .mockResolvedValue(
+          JSON.stringify({
+            certName: 'example.com',
+            domains: ['example.com'],
+          }),
+        );
+
+      (mockIsPath as unknown as jest.Mock).mockImplementation(
+        (target: string) => {
+          return (
+            target.startsWith('/etc/letsencrypt/live/example.com/') ||
+            target === '/etc/letsencrypt/wiredoor-metadata/example.com.json'
+          );
+        },
+      );
+
+      const originalProvider = config.dns.provider;
+      const originalToken = config.dns.cloudflareApiToken;
+      config.dns.provider = 'cloudflare';
+      config.dns.cloudflareApiToken = 'test-cloudflare-token';
+
+      try {
+        await SSLManager.getSSLCertificates('*.example.com', 'certbot' as any);
+
+        expect(mockCLIExec.mock.calls[0][0]).toContain('--expand');
+        expect(mockCLIExec.mock.calls[0][0]).toContain(
+          '-d example.com -d *.example.com',
+        );
+      } finally {
+        readFileSpy.mockRestore();
+        config.dns.provider = originalProvider;
+        config.dns.cloudflareApiToken = originalToken;
+      }
     });
   });
 
@@ -431,6 +482,59 @@ describe('Domains Service', () => {
       }
 
       expect(mockCLIExec).toHaveBeenCalledWith('nginx -s reload');
+    });
+
+    it('should keep the shared certbot lineage alive until the last apex or wildcard owner is removed', async () => {
+      const originalProvider = config.dns.provider;
+      const originalToken = config.dns.cloudflareApiToken;
+      config.dns.provider = 'cloudflare';
+      config.dns.cloudflareApiToken = 'test-cloudflare-token';
+
+      const wildcardDomain = makeDomainData({
+        domain: '*.example.com',
+        ssl: 'certbot',
+      });
+      const apexDomain = makeDomainData({
+        domain: 'example.com',
+        ssl: 'certbot',
+      });
+
+      const wildcardCreated = await service.createDomain(wildcardDomain);
+      const apexCreated = await service.createDomain(apexDomain);
+
+      jest.clearAllMocks();
+      (mockIsPath as unknown as jest.Mock).mockImplementation(
+        (target: string) => {
+          return target.startsWith('/etc/letsencrypt/live/example.com/');
+        },
+      );
+
+      try {
+        await service.deleteDomain(
+          wildcardCreated.id,
+        );
+
+        expect(mockRemoveFile).toHaveBeenCalledWith(
+          '/etc/nginx/conf.d/wildcard-example.com.conf',
+        );
+        expect(mockCLIExec.mock.calls.some(([cmd]) =>
+          `${cmd}`.includes('certbot delete'),
+        )).toBe(false);
+
+        jest.clearAllMocks();
+
+        await service.deleteDomain(apexCreated.id);
+
+        expect(mockRemoveFile).toHaveBeenCalledWith(
+          '/etc/nginx/conf.d/example.com.conf',
+        );
+        expect(mockCLIExec).toHaveBeenCalledWith(
+          'certbot delete --cert-name example.com -n',
+        );
+      } finally {
+        config.dns.provider = originalProvider;
+        config.dns.cloudflareApiToken = originalToken;
+      }
     });
   });
 });
