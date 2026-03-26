@@ -40,6 +40,85 @@ func TestNodePayloadMapping(t *testing.T) {
 	}
 }
 
+func TestConfigDataSourceRead(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/config" {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"VPN_HOST":                "vpn.example.com",
+			"TCP_SERVICES_PORT_RANGE": "32760-32767",
+		})
+	}))
+	defer srv.Close()
+
+	client, err := NewClient(providerConfig{Endpoint: srv.URL, Token: "token"})
+	if err != nil {
+		t.Fatalf("new client: %v", err)
+	}
+
+	d := testResourceData(t, dataSourceConfig(), map[string]interface{}{})
+	diags := dataSourceConfigRead(context.Background(), d, client)
+	if diags.HasError() {
+		t.Fatalf("read config: %v", diags)
+	}
+
+	if got := d.Get("vpn_host").(string); got != "vpn.example.com" {
+		t.Fatalf("unexpected vpn host: %q", got)
+	}
+	if got := d.Get("tcp_services_port_range").(string); got != "32760-32767" {
+		t.Fatalf("unexpected port range: %q", got)
+	}
+}
+
+func TestCompositeImportRejectsInvalidIDs(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		fn   func() error
+	}{
+		{
+			name: "http",
+			fn: func() error {
+				_, err := resourceHTTPServiceImport(context.Background(), testResourceData(t, resourceHTTPService(), map[string]interface{}{}), nil)
+				return err
+			},
+		},
+		{
+			name: "tcp",
+			fn: func() error {
+				_, err := resourceTCPServiceImport(context.Background(), testResourceData(t, resourceTCPService(), map[string]interface{}{}), nil)
+				return err
+			},
+		},
+		{
+			name: "pat",
+			fn: func() error {
+				_, err := resourcePATImport(context.Background(), testResourceData(t, resourcePAT(), map[string]interface{}{}), nil)
+				return err
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tc.fn()
+			if err == nil {
+				t.Fatal("expected import error")
+			}
+		})
+	}
+}
+
 func TestNodeReadRefreshClearsDerivedValues(t *testing.T) {
 	t.Parallel()
 
