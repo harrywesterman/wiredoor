@@ -203,7 +203,8 @@ func (c *Client) GetPAT(nodeID, patID int64) (*pat, error) {
 	}
 	for _, item := range out {
 		if item.ID == patID {
-			return &item, nil
+			pat := item
+			return &pat, nil
 		}
 	}
 	return nil, fmt.Errorf("not found: PAT %d", patID)

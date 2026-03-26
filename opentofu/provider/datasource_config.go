@@ -34,4 +34,3 @@ func dataSourceConfigRead(ctx context.Context, d *schema.ResourceData, meta inte
 	_ = d.Set("tcp_services_port_range", cfg.TCPServicesPortRange)
 	return nil
 }
-

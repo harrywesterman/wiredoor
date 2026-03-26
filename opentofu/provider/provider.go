@@ -47,18 +47,18 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"wiredoor_node":        resourceNode(),
+			"wiredoor_node":         resourceNode(),
 			"wiredoor_http_service": resourceHTTPService(),
 			"wiredoor_tcp_service":  resourceTCPService(),
-			"wiredoor_domain":      resourceDomain(),
-			"wiredoor_node_pat":    resourcePAT(),
+			"wiredoor_domain":       resourceDomain(),
+			"wiredoor_node_pat":     resourcePAT(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"wiredoor_config":        dataSourceConfig(),
-			"wiredoor_node":          dataSourceNode(),
-			"wiredoor_http_service":   dataSourceHTTPService(),
-			"wiredoor_tcp_service":   dataSourceTCPService(),
-			"wiredoor_domain":        dataSourceDomain(),
+			"wiredoor_config":       dataSourceConfig(),
+			"wiredoor_node":         dataSourceNode(),
+			"wiredoor_http_service": dataSourceHTTPService(),
+			"wiredoor_tcp_service":  dataSourceTCPService(),
+			"wiredoor_domain":       dataSourceDomain(),
 		},
 	}
 

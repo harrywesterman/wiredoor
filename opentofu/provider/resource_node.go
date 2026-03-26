@@ -108,21 +108,7 @@ func resourceNode() *schema.Resource {
 
 func resourceNodeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*Client)
-	payload := map[string]interface{}{
-		"name":           d.Get("name").(string),
-		"dns":            d.Get("dns").(string),
-		"keepalive":      d.Get("keepalive").(int),
-		"address":        d.Get("address").(string),
-		"allowInternet":  d.Get("allow_internet").(bool),
-		"advanced":       d.Get("advanced").(bool),
-		"enabled":        d.Get("enabled").(bool),
-		"isGateway":      d.Get("is_gateway").(bool),
-	}
-	if v, ok := d.GetOk("gateway_networks"); ok {
-		payload["gatewayNetworks"] = gatewayNetworksToAPI(v)
-	}
-
-	n, err := client.CreateNode(payload)
+	n, err := client.CreateNode(nodePayload(d))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -161,21 +147,7 @@ func resourceNodeUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 
-	payload := map[string]interface{}{
-		"name":           d.Get("name").(string),
-		"dns":            d.Get("dns").(string),
-		"keepalive":      d.Get("keepalive").(int),
-		"address":        d.Get("address").(string),
-		"allowInternet":  d.Get("allow_internet").(bool),
-		"advanced":       d.Get("advanced").(bool),
-		"enabled":        d.Get("enabled").(bool),
-		"isGateway":      d.Get("is_gateway").(bool),
-	}
-	if v, ok := d.GetOk("gateway_networks"); ok {
-		payload["gatewayNetworks"] = gatewayNetworksToAPI(v)
-	}
-
-	n, err := client.UpdateNode(id, payload)
+	n, err := client.UpdateNode(id, nodePayload(d))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -220,6 +192,23 @@ func setNodeState(d *schema.ResourceData, n *node) diag.Diagnostics {
 		_ = d.Set("token", n.Token)
 	}
 	return nil
+}
+
+func nodePayload(d *schema.ResourceData) map[string]interface{} {
+	payload := map[string]interface{}{
+		"name":          d.Get("name").(string),
+		"dns":           d.Get("dns").(string),
+		"keepalive":     d.Get("keepalive").(int),
+		"address":       d.Get("address").(string),
+		"allowInternet": d.Get("allow_internet").(bool),
+		"advanced":      d.Get("advanced").(bool),
+		"enabled":       d.Get("enabled").(bool),
+		"isGateway":     d.Get("is_gateway").(bool),
+	}
+	if v, ok := d.GetOk("gateway_networks"); ok {
+		payload["gatewayNetworks"] = gatewayNetworksToAPI(v)
+	}
+	return payload
 }
 
 func dataSourceNode() *schema.Resource {

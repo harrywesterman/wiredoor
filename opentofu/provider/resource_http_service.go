@@ -161,15 +161,9 @@ func resourceHTTPServiceDelete(ctx context.Context, d *schema.ResourceData, meta
 }
 
 func resourceHTTPServiceImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	serviceID, err := parseID(d.Id())
+	nodeID, serviceID, err := parseCompositeID(d.Id())
 	if err != nil {
 		return nil, err
-	}
-	// use the configured node_id if present, otherwise default to 0 because
-	// the API ignores the nodeId path parameter for the fetch route.
-	nodeID := int64(0)
-	if raw, ok := d.GetOk("node_id"); ok {
-		nodeID = int64Value(raw)
 	}
 	d.SetId(strconv.FormatInt(nodeID, 10) + "/" + strconv.FormatInt(serviceID, 10))
 	return []*schema.ResourceData{d}, nil
@@ -177,16 +171,16 @@ func resourceHTTPServiceImport(ctx context.Context, d *schema.ResourceData, meta
 
 func httpServicePayload(d *schema.ResourceData) map[string]interface{} {
 	payload := map[string]interface{}{
-		"name":         d.Get("name").(string),
-		"domain":       d.Get("domain").(string),
-		"pathLocation": d.Get("path_location").(string),
-		"backendHost":  d.Get("backend_host").(string),
-		"backendPort":  d.Get("backend_port").(int),
-		"backendProto": d.Get("backend_proto").(string),
-		"requireAuth":  d.Get("require_auth").(bool),
+		"name":           d.Get("name").(string),
+		"domain":         d.Get("domain").(string),
+		"pathLocation":   d.Get("path_location").(string),
+		"backendHost":    d.Get("backend_host").(string),
+		"backendPort":    d.Get("backend_port").(int),
+		"backendProto":   d.Get("backend_proto").(string),
+		"requireAuth":    d.Get("require_auth").(bool),
 		"skipAuthRoutes": d.Get("skip_auth_routes").(string),
-		"enabled":      d.Get("enabled").(bool),
-		"ttl":          d.Get("ttl").(string),
+		"enabled":        d.Get("enabled").(bool),
+		"ttl":            d.Get("ttl").(string),
 	}
 	if v, ok := d.GetOk("allowed_ips"); ok {
 		payload["allowedIps"] = stringSlice(v)
@@ -231,22 +225,22 @@ func dataSourceHTTPService() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"name":         {Type: schema.TypeString, Computed: true},
-			"domain":       {Type: schema.TypeString, Computed: true},
-			"path_location": {Type: schema.TypeString, Computed: true},
-			"backend_host": {Type: schema.TypeString, Computed: true},
-			"backend_port": {Type: schema.TypeInt, Computed: true},
-			"backend_proto": {Type: schema.TypeString, Computed: true},
-			"allowed_ips":  {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
-			"blocked_ips":  {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
-			"require_auth": {Type: schema.TypeBool, Computed: true},
+			"name":             {Type: schema.TypeString, Computed: true},
+			"domain":           {Type: schema.TypeString, Computed: true},
+			"path_location":    {Type: schema.TypeString, Computed: true},
+			"backend_host":     {Type: schema.TypeString, Computed: true},
+			"backend_port":     {Type: schema.TypeInt, Computed: true},
+			"backend_proto":    {Type: schema.TypeString, Computed: true},
+			"allowed_ips":      {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
+			"blocked_ips":      {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
+			"require_auth":     {Type: schema.TypeBool, Computed: true},
 			"skip_auth_routes": {Type: schema.TypeString, Computed: true},
-			"enabled":      {Type: schema.TypeBool, Computed: true},
-			"ttl":          {Type: schema.TypeString, Computed: true},
-			"public_access": {Type: schema.TypeString, Computed: true},
-			"expires_at":    {Type: schema.TypeString, Computed: true},
-			"created_at":    {Type: schema.TypeString, Computed: true},
-			"updated_at":    {Type: schema.TypeString, Computed: true},
+			"enabled":          {Type: schema.TypeBool, Computed: true},
+			"ttl":              {Type: schema.TypeString, Computed: true},
+			"public_access":    {Type: schema.TypeString, Computed: true},
+			"expires_at":       {Type: schema.TypeString, Computed: true},
+			"created_at":       {Type: schema.TypeString, Computed: true},
+			"updated_at":       {Type: schema.TypeString, Computed: true},
 		},
 	}
 }

@@ -2,7 +2,7 @@
 
 This directory contains a native OpenTofu / Terraform provider for Wiredoor.
 
-## Status
+## What it manages
 
 The provider currently supports:
 
@@ -21,7 +21,40 @@ go test ./...
 go build
 ```
 
-## Example usage
+## Provider config
 
-See `opentofu/examples/basic`.
+```hcl
+provider "wiredoor" {
+  endpoint = "https://wiredoor.example.com"
+  username = var.username
+  password = var.password
+  insecure = false
+}
+```
 
+You can also provide a pre-authenticated `token` instead of username/password.
+
+## Import formats
+
+- `wiredoor_node`: `<id>`
+- `wiredoor_domain`: `<id>`
+- `wiredoor_http_service`: `<node_id>/<service_id>`
+- `wiredoor_tcp_service`: `<node_id>/<service_id>`
+- `wiredoor_node_pat`: `<node_id>/<pat_id>`
+
+## Module usage
+
+The `opentofu/module` directory provides a small wrapper that creates:
+
+- one Wiredoor node
+- one node PAT
+- one HTTP service
+
+The basic example in `opentofu/examples/basic` shows how to wire the module into a root configuration.
+
+## Notes
+
+- PAT tokens are treated as sensitive and are only persisted when the API returns them.
+- This provider targets an existing Wiredoor deployment; it does not install Wiredoor itself.
+
+See `opentofu/examples/basic` for a complete root module example.

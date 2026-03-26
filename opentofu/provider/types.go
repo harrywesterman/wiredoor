@@ -27,74 +27,74 @@ type gatewayNetwork struct {
 }
 
 type node struct {
-	ID              int64           `json:"id"`
-	Name            string          `json:"name"`
-	Address         string          `json:"address"`
-	DNS             string          `json:"dns"`
-	Keepalive       int64           `json:"keepalive"`
-	GatewayNetwork  string          `json:"gatewayNetwork"`
+	ID              int64            `json:"id"`
+	Name            string           `json:"name"`
+	Address         string           `json:"address"`
+	DNS             string           `json:"dns"`
+	Keepalive       int64            `json:"keepalive"`
+	GatewayNetwork  string           `json:"gatewayNetwork"`
 	GatewayNetworks []gatewayNetwork `json:"gatewayNetworks"`
-	WGInterface     string          `json:"wgInterface"`
-	AllowInternet   bool            `json:"allowInternet"`
-	Advanced        bool            `json:"advanced"`
-	Enabled         bool            `json:"enabled"`
-	IsGateway       bool            `json:"isGateway"`
-	IsLocal         bool            `json:"isLocal"`
-	Token           string          `json:"token,omitempty"`
-	CreatedAt       time.Time       `json:"created_at"`
-	UpdatedAt       time.Time       `json:"updated_at"`
+	WGInterface     string           `json:"wgInterface"`
+	AllowInternet   bool             `json:"allowInternet"`
+	Advanced        bool             `json:"advanced"`
+	Enabled         bool             `json:"enabled"`
+	IsGateway       bool             `json:"isGateway"`
+	IsLocal         bool             `json:"isLocal"`
+	Token           string           `json:"token,omitempty"`
+	CreatedAt       time.Time        `json:"created_at"`
+	UpdatedAt       time.Time        `json:"updated_at"`
 }
 
 type httpService struct {
-	ID           int64    `json:"id"`
-	NodeID       int64    `json:"nodeId"`
-	Name         string   `json:"name"`
-	Domain       string   `json:"domain"`
-	PathLocation string   `json:"pathLocation"`
-	BackendHost  string   `json:"backendHost"`
-	BackendPort  int64    `json:"backendPort"`
-	BackendProto string   `json:"backendProto"`
-	AllowedIPs   []string `json:"allowedIps"`
-	BlockedIPs   []string `json:"blockedIps"`
-	RequireAuth  bool     `json:"requireAuth"`
-	SkipAuthRoutes string `json:"skipAuthRoutes"`
-	Enabled      bool     `json:"enabled"`
-	TTL          string   `json:"ttl"`
-	ExpiresAt    *time.Time `json:"expiresAt"`
-	PublicAccess string   `json:"publicAccess"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID             int64      `json:"id"`
+	NodeID         int64      `json:"nodeId"`
+	Name           string     `json:"name"`
+	Domain         string     `json:"domain"`
+	PathLocation   string     `json:"pathLocation"`
+	BackendHost    string     `json:"backendHost"`
+	BackendPort    int64      `json:"backendPort"`
+	BackendProto   string     `json:"backendProto"`
+	AllowedIPs     []string   `json:"allowedIps"`
+	BlockedIPs     []string   `json:"blockedIps"`
+	RequireAuth    bool       `json:"requireAuth"`
+	SkipAuthRoutes string     `json:"skipAuthRoutes"`
+	Enabled        bool       `json:"enabled"`
+	TTL            string     `json:"ttl"`
+	ExpiresAt      *time.Time `json:"expiresAt"`
+	PublicAccess   string     `json:"publicAccess"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
 }
 
 type tcpService struct {
-	ID          int64      `json:"id"`
-	NodeID      int64      `json:"nodeId"`
-	Name        string     `json:"name"`
-	Domain      string     `json:"domain"`
-	Proto       string     `json:"proto"`
-	BackendHost string     `json:"backendHost"`
-	BackendPort int64      `json:"backendPort"`
-	Port        int64      `json:"port"`
-	SSL         bool       `json:"ssl"`
-	AllowedIPs  []string   `json:"allowedIps"`
-	BlockedIPs  []string   `json:"blockedIps"`
-	Enabled     bool       `json:"enabled"`
-	TTL         string     `json:"ttl"`
-	ExpiresAt   *time.Time `json:"expiresAt"`
-	PublicAccess string    `json:"publicAccess"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID           int64      `json:"id"`
+	NodeID       int64      `json:"nodeId"`
+	Name         string     `json:"name"`
+	Domain       string     `json:"domain"`
+	Proto        string     `json:"proto"`
+	BackendHost  string     `json:"backendHost"`
+	BackendPort  int64      `json:"backendPort"`
+	Port         int64      `json:"port"`
+	SSL          bool       `json:"ssl"`
+	AllowedIPs   []string   `json:"allowedIps"`
+	BlockedIPs   []string   `json:"blockedIps"`
+	Enabled      bool       `json:"enabled"`
+	TTL          string     `json:"ttl"`
+	ExpiresAt    *time.Time `json:"expiresAt"`
+	PublicAccess string     `json:"publicAccess"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
 type domain struct {
-	ID             int64      `json:"id"`
-	Domain         string     `json:"domain"`
-	SSL            string     `json:"ssl"`
-	Authentication bool       `json:"authentication"`
-	AllowedEmails  []string   `json:"allowedEmails"`
-	SkipValidation bool       `json:"skipValidation"`
-	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at"`
+	ID             int64     `json:"id"`
+	Domain         string    `json:"domain"`
+	SSL            string    `json:"ssl"`
+	Authentication bool      `json:"authentication"`
+	AllowedEmails  []string  `json:"allowedEmails"`
+	SkipValidation bool      `json:"skipValidation"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type pat struct {
@@ -169,4 +169,3 @@ func stringValue(v interface{}) string {
 	}
 	return ""
 }
-

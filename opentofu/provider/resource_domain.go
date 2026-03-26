@@ -146,7 +146,7 @@ func dataSourceDomain() *schema.Resource {
 			"ssl":             {Type: schema.TypeString, Computed: true},
 			"authentication":  {Type: schema.TypeBool, Computed: true},
 			"allowed_emails":  {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
-			"skip_validation":  {Type: schema.TypeBool, Computed: true},
+			"skip_validation": {Type: schema.TypeBool, Computed: true},
 			"created_at":      {Type: schema.TypeString, Computed: true},
 			"updated_at":      {Type: schema.TypeString, Computed: true},
 		},

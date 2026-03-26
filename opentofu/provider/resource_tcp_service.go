@@ -147,13 +147,9 @@ func resourceTCPServiceDelete(ctx context.Context, d *schema.ResourceData, meta 
 }
 
 func resourceTCPServiceImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	serviceID, err := parseID(d.Id())
+	nodeID, serviceID, err := parseCompositeID(d.Id())
 	if err != nil {
 		return nil, err
-	}
-	nodeID := int64(0)
-	if raw, ok := d.GetOk("node_id"); ok {
-		nodeID = int64Value(raw)
 	}
 	d.SetId(strconv.FormatInt(nodeID, 10) + "/" + strconv.FormatInt(serviceID, 10))
 	return []*schema.ResourceData{d}, nil
@@ -161,15 +157,15 @@ func resourceTCPServiceImport(ctx context.Context, d *schema.ResourceData, meta 
 
 func tcpServicePayload(d *schema.ResourceData) map[string]interface{} {
 	payload := map[string]interface{}{
-		"name":         d.Get("name").(string),
-		"domain":       d.Get("domain").(string),
-		"proto":        d.Get("proto").(string),
-		"backendHost":  d.Get("backend_host").(string),
-		"backendPort":  d.Get("backend_port").(int),
-		"port":         d.Get("port").(int),
-		"ssl":          d.Get("ssl").(bool),
-		"enabled":      d.Get("enabled").(bool),
-		"ttl":          d.Get("ttl").(string),
+		"name":        d.Get("name").(string),
+		"domain":      d.Get("domain").(string),
+		"proto":       d.Get("proto").(string),
+		"backendHost": d.Get("backend_host").(string),
+		"backendPort": d.Get("backend_port").(int),
+		"port":        d.Get("port").(int),
+		"ssl":         d.Get("ssl").(bool),
+		"enabled":     d.Get("enabled").(bool),
+		"ttl":         d.Get("ttl").(string),
 	}
 	if v, ok := d.GetOk("allowed_ips"); ok {
 		payload["allowedIps"] = stringSlice(v)
@@ -205,19 +201,19 @@ func dataSourceTCPService() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: resourceTCPServiceRead,
 		Schema: map[string]*schema.Schema{
-			"node_id": {Type: schema.TypeString, Required: true},
-			"id":      {Type: schema.TypeString, Required: true},
-			"name":    {Type: schema.TypeString, Computed: true},
-			"domain":  {Type: schema.TypeString, Computed: true},
-			"proto":   {Type: schema.TypeString, Computed: true},
-			"backend_host": {Type: schema.TypeString, Computed: true},
-			"backend_port": {Type: schema.TypeInt, Computed: true},
-			"port":    {Type: schema.TypeInt, Computed: true},
-			"ssl":     {Type: schema.TypeBool, Computed: true},
-			"allowed_ips": {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
-			"blocked_ips": {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
-			"enabled": {Type: schema.TypeBool, Computed: true},
-			"ttl":     {Type: schema.TypeString, Computed: true},
+			"node_id":       {Type: schema.TypeString, Required: true},
+			"id":            {Type: schema.TypeString, Required: true},
+			"name":          {Type: schema.TypeString, Computed: true},
+			"domain":        {Type: schema.TypeString, Computed: true},
+			"proto":         {Type: schema.TypeString, Computed: true},
+			"backend_host":  {Type: schema.TypeString, Computed: true},
+			"backend_port":  {Type: schema.TypeInt, Computed: true},
+			"port":          {Type: schema.TypeInt, Computed: true},
+			"ssl":           {Type: schema.TypeBool, Computed: true},
+			"allowed_ips":   {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
+			"blocked_ips":   {Type: schema.TypeList, Computed: true, Elem: &schema.Schema{Type: schema.TypeString}},
+			"enabled":       {Type: schema.TypeBool, Computed: true},
+			"ttl":           {Type: schema.TypeString, Computed: true},
 			"public_access": {Type: schema.TypeString, Computed: true},
 			"expires_at":    {Type: schema.TypeString, Computed: true},
 			"created_at":    {Type: schema.TypeString, Computed: true},
