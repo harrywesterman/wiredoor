@@ -48,12 +48,11 @@ export class ProcessManager {
     }
 
     const processFile = `[program:oauth2-proxy-d${domain.id}]
-command=sh -c 'source /etc/environment && /usr/bin/oauth2-proxy --skip-provider-button=true --cookie-csrf-per-request=true --cookie-samesite=lax'
+command=sh -c 'source /etc/environment && /usr/bin/oauth2-proxy --skip-provider-button=true --reverse-proxy=true --cookie-csrf-per-request=true --cookie-samesite=lax'
 environment=
   OAUTH2_PROXY_HTTP_ADDRESS="127.0.0.1:${domain.oauth2ServicePort}",
   OAUTH2_PROXY_COOKIE_DOMAINS="${cookieDomain}",
   OAUTH2_PROXY_COOKIE_SECRET="${secret}",
-  OAUTH2_PROXY_REDIRECT_URL="https://${cookieDomain}/oauth2/callback",
   ${hasEmails ? `OAUTH2_PROXY_AUTHENTICATED_EMAILS_FILE="/opt/oauth2-proxy/${filesystemDomainKey}-emails"` : ''}
 autorestart=true
 stopsignal=KILL

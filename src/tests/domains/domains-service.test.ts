@@ -361,6 +361,31 @@ describe('Domains Service', () => {
       }
     });
 
+    it('should create a wildcard domain with self-signed TLS without HTTP verification', async () => {
+      const data = makeDomainData({
+        domain: '*.example.com',
+        ssl: 'self-signed',
+      });
+
+      jest.clearAllMocks();
+
+      const result = await service.createDomainIfNotExists(data.domain);
+      const filesystemDomainKey = DomainUtils.getFilesystemDomainKey(
+        data.domain,
+      );
+
+      expect(result.domain).toEqual(data.domain);
+      expect(result.ssl).toEqual('self-signed');
+      expect(mockSaveToFile).toHaveBeenCalledWith(
+        `/etc/nginx/ssl/${filesystemDomainKey}/privkey.key`,
+        expect.any(String),
+      );
+      expect(mockSaveToFile).toHaveBeenCalledWith(
+        `/etc/nginx/conf.d/${filesystemDomainKey}.conf`,
+        expect.stringContaining(` ${data.domain};`),
+      );
+    });
+
     it('should reject wildcard certificates when Cloudflare DNS-01 is missing', async () => {
       await expect(
         SSLManager.getSSLCertificates('*.example.com', 'certbot' as any),

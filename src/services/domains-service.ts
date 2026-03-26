@@ -180,6 +180,27 @@ export class DomainsService {
     if (instance) {
       return instance;
     }
+
+    if (DomainUtils.isWildcardDomain(domain)) {
+      const canUseCloudflareWildcardCerts =
+        config.dns.provider === 'cloudflare' && !!config.dns.cloudflareApiToken;
+
+      const newDomain = canUseCloudflareWildcardCerts
+        ? await this.addDnsRecordForDomain(domain)
+        : false;
+
+      return this.createDomain(
+        {
+          domain,
+          ssl:
+            canUseCloudflareWildcardCerts && newDomain
+              ? SSLTermination.Certbot
+              : SSLTermination.SelfSigned,
+        },
+        false,
+      );
+    }
+
     let newDomain = false;
     const resolveThisServer = await pointToThisServer(domain);
 

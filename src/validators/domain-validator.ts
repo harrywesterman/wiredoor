@@ -67,6 +67,10 @@ export const isValidDomain = async (domain: string): Promise<boolean> => {
 
 export const nslookupResolvesServerIp = async (c: string): Promise<string> => {
   if (c) {
+    if (isWildcardDomain(c)) {
+      return c;
+    }
+
     const resolveThisServer = await isValidDomain(c);
 
     if (!resolveThisServer) {
