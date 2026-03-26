@@ -1,0 +1,20 @@
+output "node_id" {
+  value = module.gateway.node_id
+}
+
+output "node_token" {
+  value     = module.gateway.node_token
+  sensitive = true
+}
+
+output "http_service_id" {
+  value = module.gateway.http_service_id
+}
+
+output "domain_id" {
+  value = module.gateway.domain_id
+}
+
+output "tcp_service_id" {
+  value = module.gateway.tcp_service_id
+}

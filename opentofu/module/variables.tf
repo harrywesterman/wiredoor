@@ -1,0 +1,140 @@
+variable "node_name" {
+  type = string
+}
+
+variable "node_addr" {
+  type = string
+}
+
+variable "allow_internet" {
+  type    = bool
+  default = false
+}
+
+variable "node_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "domain_name" {
+  type    = string
+  default = ""
+}
+
+variable "domain_ssl" {
+  type    = string
+  default = "self-signed"
+}
+
+variable "domain_authentication" {
+  type    = bool
+  default = false
+}
+
+variable "domain_allowed_emails" {
+  type    = list(string)
+  default = []
+}
+
+variable "domain_skip_validation" {
+  type    = bool
+  default = false
+}
+
+variable "pat_name" {
+  type    = string
+  default = "default"
+}
+
+variable "http_name" {
+  type = string
+}
+
+variable "http_path" {
+  type    = string
+  default = "/"
+}
+
+variable "http_port" {
+  type = number
+}
+
+variable "http_backend_host" {
+  type    = string
+  default = ""
+}
+
+variable "http_backend_proto" {
+  type    = string
+  default = "http"
+}
+
+variable "http_domain" {
+  type    = string
+  default = ""
+}
+
+variable "http_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "http_require_auth" {
+  type    = bool
+  default = false
+}
+
+variable "tcp_allowed_ips" {
+  type    = list(string)
+  default = []
+}
+
+variable "tcp_backend_host" {
+  type    = string
+  default = ""
+}
+
+variable "tcp_backend_port" {
+  type    = number
+  default = 0
+}
+
+variable "tcp_blocked_ips" {
+  type    = list(string)
+  default = []
+}
+
+variable "tcp_domain" {
+  type    = string
+  default = ""
+}
+
+variable "tcp_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "tcp_name" {
+  type    = string
+  default = ""
+}
+
+variable "tcp_port" {
+  type    = number
+  default = 0
+}
+
+variable "tcp_proto" {
+  type    = string
+  default = "tcp"
+}
+
+variable "tcp_ssl" {
+  type    = bool
+  default = false
+}
+
+variable "tcp_ttl" {
+  type    = string
+  default = ""
+}
