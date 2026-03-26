@@ -35,6 +35,18 @@ export class DomainsService {
     this.dnsService = Container.get(DNSService);
   }
 
+  private isWildcardDomain(domain: string): boolean {
+    return !!domain && domain.startsWith('*.');
+  }
+
+  private getDnsVerificationDomain(domain: string): string {
+    if (this.isWildcardDomain(domain)) {
+      return `wiredoor-verify.${domain.slice(2)}`;
+    }
+
+    return domain;
+  }
+
   private async addDnsRecordForDomain(domain: string): Promise<boolean> {
     if (config.dns.provider) {
       const dnsCanManageDomain = await this.dnsService.canManageDomain(domain);
@@ -60,7 +72,9 @@ export class DomainsService {
           });
         }
         try {
-          await this.dnsService.waitUntilResolvesTo(domain, realIp, {
+          const verificationDomain = this.getDnsVerificationDomain(domain);
+
+          await this.dnsService.waitUntilResolvesTo(verificationDomain, realIp, {
             timeoutMs: 30_000,
             intervalMs: 1_000,
           });

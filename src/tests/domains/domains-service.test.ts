@@ -9,12 +9,14 @@ import {
   mockRemoveFile,
   mockSaveToFile,
 } from '../.jest/global-mocks';
+import config from '../../config';
 import { DomainRepository } from '../../repositories/domain-repository';
 import { DomainsService } from '../../services/domains-service';
 import { DomainQueryFilter } from '../../repositories/filters/domain-query-filter';
 import { makeDomainData } from './stubs/domain.stub';
 import { PagedData } from '../../repositories/filters/repository-query-filter';
 import { Domain } from '../../database/models/domain';
+import { SSLManager } from '../../services/proxy-server/ssl-manager';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
@@ -272,6 +274,93 @@ describe('Domains Service', () => {
         ['nginx -t'],
         ['nginx -s reload'],
       ]);
+    });
+
+    it('should create a wildcard domain using Cloudflare DNS-01 and verify a concrete subdomain', async () => {
+      const data = makeDomainData({
+        domain: '*.example.com',
+        ssl: 'certbot',
+      });
+
+      const originalProvider = config.dns.provider;
+      const originalToken = config.dns.cloudflareApiToken;
+      const dnsService = {
+        canManageDomain: jest.fn().mockResolvedValue(true),
+        createRecord: jest.fn().mockResolvedValue({
+          type: 'A',
+          name: '*.example.com',
+          content: '203.0.113.10',
+          ttl: 3600,
+        }),
+        waitUntilResolvesTo: jest.fn().mockResolvedValue(undefined),
+      };
+
+      config.dns.provider = 'cloudflare';
+      config.dns.cloudflareApiToken = 'test-cloudflare-token';
+      mockNslookup.mockImplementation(
+        jest.fn(() => {
+          return false;
+        }),
+      );
+      service['dnsService'] = dnsService as any;
+
+      try {
+        const result = await service.createDomainIfNotExists(data.domain);
+
+        expect(result.domain).toEqual(data.domain);
+        expect(result.ssl).toEqual('certbot');
+        expect(result.sslPair.fullchain).toEqual(
+          '/etc/letsencrypt/live/example.com/fullchain.pem',
+        );
+        expect(dnsService.createRecord).toHaveBeenCalledWith({
+          name: '*.example.com',
+          type: 'A',
+          content: '203.0.113.10',
+          ttl: 3600,
+          proxied: false,
+        });
+        expect(dnsService.waitUntilResolvesTo).toHaveBeenCalledWith(
+          'wiredoor-verify.example.com',
+          '203.0.113.10',
+          expect.objectContaining({
+            timeoutMs: 30_000,
+            intervalMs: 1_000,
+          }),
+        );
+        expect(mockSaveToFile).toHaveBeenCalledWith(
+          '/etc/letsencrypt/cloudflare.ini',
+          expect.stringContaining(
+            'dns_cloudflare_api_token = test-cloudflare-token',
+          ),
+          'utf-8',
+          0o600,
+        );
+        expect(mockCLIExec.mock.calls[0][0]).toContain('--dns-cloudflare');
+        expect(mockCLIExec.mock.calls[0][0]).toContain(
+          '--dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini',
+        );
+        expect(mockCLIExec.mock.calls[0][0]).toContain(
+          '-d example.com -d *.example.com',
+        );
+      } finally {
+        config.dns.provider = originalProvider;
+        config.dns.cloudflareApiToken = originalToken;
+      }
+    });
+
+    it('should reject wildcard certificates when Cloudflare DNS-01 is missing', async () => {
+      await expect(
+        SSLManager.getSSLCertificates('*.example.com', 'certbot' as any),
+      ).rejects.toMatchObject({
+        errors: {
+          body: [
+            expect.objectContaining({
+              field: 'domain',
+              message: expect.stringContaining('CLOUDFLARE_API_TOKEN'),
+            }),
+          ],
+        },
+      });
     });
   });
 

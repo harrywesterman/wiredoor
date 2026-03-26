@@ -40,6 +40,22 @@ const mockGenPreSharedKey = jest.fn(async () => {
   return Promise.resolve('shared_key');
 });
 
+jest.mock('fs', () => {
+  return {
+    __esModule: true,
+    default: {
+      mkdirSync: jest.fn(),
+      existsSync: jest.fn(() => false),
+      readFileSync: jest.fn(() => ''),
+      writeFileSync: jest.fn(),
+    },
+    mkdirSync: jest.fn(),
+    existsSync: jest.fn(() => false),
+    readFileSync: jest.fn(() => ''),
+    writeFileSync: jest.fn(),
+  };
+});
+
 jest.mock('dns', () => {
   return {
     resolve: mockLookup,
@@ -87,6 +103,10 @@ const mockGetAvailablePort = jest.fn((arr, min, max) => {
   return port;
 });
 
+const mockGetRealPublicIp = jest.fn(() => {
+  return Promise.resolve('203.0.113.10');
+});
+
 jest.mock('../../utils/cli.ts', () => {
   return {
     exec: mockCLIExec,
@@ -109,6 +129,7 @@ jest.mock('../../utils/net.ts', () => {
     getAvailableLocalPort: mockGetAvailablePort,
     checkPort: mockCheckPort,
     getWireguardIP: jest.fn(() => config.wireguard.host),
+    getRealPublicIp: mockGetRealPublicIp,
   };
 });
 
@@ -196,5 +217,6 @@ module.exports = {
   mockCheckCname,
   mockCheckPort,
   mockGetAvailablePort,
+  mockGetRealPublicIp,
   mockAuthenticatedToken,
 };

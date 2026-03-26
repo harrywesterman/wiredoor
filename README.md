@@ -148,6 +148,7 @@ wiredoor http myapp --domain app.your.domain.com --port 3000
 ## Domains & Certificates
 
 - Supports public domains with Let's Encrypt SSL.
+- Supports wildcard Let's Encrypt certificates via Cloudflare DNS-01 when the domain starts with `*.`.
 - Also works with local/internal domains using self-signed certificates.
 - Automatically handles renewal and configuration.
 

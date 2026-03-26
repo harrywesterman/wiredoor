@@ -7,6 +7,37 @@ import config from '../config';
 import Container from 'typedi';
 import { DNSService } from '../services/dns/dns-service';
 
+const wildcardDomainPattern =
+  /^(\*\.)?([a-zA-Z0-9-]+\.)+([a-zA-Z]{2,})$/;
+
+const isWildcardDomain = (domain: string): boolean => domain.startsWith('*.');
+
+export const wildcardCertbotRequiresCloudflare = async (
+  value: DomainType,
+): Promise<DomainType> => {
+  if (
+    value?.domain &&
+    isWildcardDomain(value.domain) &&
+    value.ssl === 'certbot' &&
+    (config.dns.provider !== 'cloudflare' || !config.dns.cloudflareApiToken)
+  ) {
+    throw new ValidationError(
+      `wildcard certificates require cloudflare dns-01`,
+      [
+        {
+          path: ['domain'],
+          message:
+            'Wildcard domains require Cloudflare DNS-01 and a valid CLOUDFLARE_API_TOKEN.',
+          type: 'Error',
+        },
+      ],
+      null,
+    );
+  }
+
+  return value;
+};
+
 export const pointToThisServer = async (domain: string): Promise<boolean> => {
   const lookup = await Net.lookupIncludesThisServer(domain);
 
@@ -84,13 +115,10 @@ export const domainValidator: ObjectSchema<DomainType> = Joi.object({
   domain: Joi.string().when('skipValidation', {
     is: true,
     then: Joi.string()
-      .pattern(
-        new RegExp(`^([a-zA-Z0-9-]+\\.)+([a-zA-Z]{2,})$`),
-        'domain structure',
-      )
+      .pattern(wildcardDomainPattern, 'domain structure')
       .required(),
     otherwise: Joi.string()
-      .domain()
+      .pattern(wildcardDomainPattern, 'domain structure')
       .external(nslookupResolvesServerIp)
       .required(),
   }),
@@ -109,4 +137,4 @@ export const domainValidator: ObjectSchema<DomainType> = Joi.object({
     otherwise: Joi.array().max(0).allow(null).optional(),
   }),
   skipValidation: Joi.boolean().optional(),
-});
+}).external(wildcardCertbotRequiresCloudflare);
