@@ -16,6 +16,31 @@ variable "node_enabled" {
   default = true
 }
 
+variable "domain_name" {
+  type    = string
+  default = ""
+}
+
+variable "domain_ssl" {
+  type    = string
+  default = "self-signed"
+}
+
+variable "domain_authentication" {
+  type    = bool
+  default = false
+}
+
+variable "domain_allowed_emails" {
+  type    = list(string)
+  default = []
+}
+
+variable "domain_skip_validation" {
+  type    = bool
+  default = false
+}
+
 variable "pat_name" {
   type    = string
   default = "default"
@@ -58,4 +83,3 @@ variable "http_require_auth" {
   type    = bool
   default = false
 }
-

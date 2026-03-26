@@ -24,6 +24,16 @@ variable "node_addr" {
   type = string
 }
 
+variable "domain_name" {
+  type    = string
+  default = ""
+}
+
+variable "domain_ssl" {
+  type    = string
+  default = "self-signed"
+}
+
 variable "http_name" {
   type = string
 }
@@ -36,4 +46,3 @@ variable "http_path" {
 variable "http_port" {
   type = number
 }
-

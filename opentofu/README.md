@@ -49,8 +49,11 @@ The `opentofu/module` directory provides a small wrapper that creates:
 - one Wiredoor node
 - one node PAT
 - one HTTP service
+- an optional domain resource for SSL/certificate settings
 
 The basic example in `opentofu/examples/basic` shows how to wire the module into a root configuration.
+
+The module defaults to `self-signed` domain SSL when `domain_name` is set. Set `domain_ssl = "certbot"` for public domains that should use Let's Encrypt.
 
 ## Notes
 

@@ -21,6 +21,8 @@ module "gateway" {
 
   node_name  = var.node_name
   node_addr  = var.node_addr
+  domain_name = var.domain_name
+  domain_ssl  = var.domain_ssl
   http_name  = var.http_name
   http_path  = var.http_path
   http_port  = var.http_port

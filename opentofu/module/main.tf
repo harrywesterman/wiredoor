@@ -6,11 +6,25 @@ terraform {
   }
 }
 
+locals {
+  http_domain = var.http_domain != "" ? var.http_domain : var.domain_name
+}
+
 resource "wiredoor_node" "this" {
   name           = var.node_name
   address        = var.node_addr
   allow_internet = var.allow_internet
   enabled        = var.node_enabled
+}
+
+resource "wiredoor_domain" "this" {
+  count = var.domain_name != "" ? 1 : 0
+
+  domain           = var.domain_name
+  ssl              = var.domain_ssl
+  authentication   = var.domain_authentication
+  allowed_emails   = var.domain_allowed_emails
+  skip_validation  = var.domain_skip_validation
 }
 
 resource "wiredoor_node_pat" "this" {
@@ -25,8 +39,7 @@ resource "wiredoor_http_service" "this" {
   backend_port  = var.http_port
   backend_host  = var.http_backend_host
   backend_proto = var.http_backend_proto
-  domain        = var.http_domain
+  domain        = local.http_domain
   enabled       = var.http_enabled
   require_auth  = var.http_require_auth
 }
-
