@@ -93,7 +93,11 @@ func setPATState(d *schema.ResourceData, p *pat) diag.Diagnostics {
 	d.SetId(strconv.FormatInt(p.NodeID, 10) + "/" + strconv.FormatInt(p.ID, 10))
 	_ = d.Set("node_id", strconv.FormatInt(p.NodeID, 10))
 	_ = d.Set("name", p.Name)
-	_ = d.Set("token", p.Token)
+	if p.Token != "" {
+		_ = d.Set("token", p.Token)
+	} else {
+		_ = d.Set("token", "")
+	}
 	_ = d.Set("revoked", p.Revoked)
 	_ = d.Set("created_at", formatTime(p.CreatedAt))
 	_ = d.Set("updated_at", formatTime(p.UpdatedAt))

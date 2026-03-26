@@ -197,11 +197,16 @@ func (c *Client) DeleteDomain(id int64) error {
 }
 
 func (c *Client) GetPAT(nodeID, patID int64) (*pat, error) {
-	var out pat
-	if err := c.do(http.MethodGet, fmt.Sprintf("/nodes/%d/pats?id=%d", nodeID, patID), nil, true, &out); err != nil {
+	var out []pat
+	if err := c.do(http.MethodGet, fmt.Sprintf("/nodes/%d/pats", nodeID), nil, true, &out); err != nil {
 		return nil, err
 	}
-	return &out, nil
+	for _, item := range out {
+		if item.ID == patID {
+			return &item, nil
+		}
+	}
+	return nil, fmt.Errorf("not found: PAT %d", patID)
 }
 
 func (c *Client) CreatePAT(nodeID int64, payload map[string]interface{}) (*pat, error) {
@@ -301,4 +306,3 @@ func int64Value(v interface{}) int64 {
 		return 0
 	}
 }
-

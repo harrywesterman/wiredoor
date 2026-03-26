@@ -85,6 +85,36 @@ func TestClientGetConfig(t *testing.T) {
 	}
 }
 
+func TestClientGetPATScansNodeTokens(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/nodes/9/pats" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`[{"id":1,"nodeId":9,"name":"default","revoked":false},{"id":7,"nodeId":9,"name":"deploy","revoked":false}]`))
+	}))
+	defer srv.Close()
+
+	client, err := NewClient(providerConfig{Endpoint: srv.URL, Token: "token"})
+	if err != nil {
+		t.Fatalf("new client: %v", err)
+	}
+
+	p, err := client.GetPAT(9, 7)
+	if err != nil {
+		t.Fatalf("get pat: %v", err)
+	}
+	if p.ID != 7 {
+		t.Fatalf("unexpected pat id: %d", p.ID)
+	}
+	if p.Name != "deploy" {
+		t.Fatalf("unexpected pat name: %q", p.Name)
+	}
+}
+
 func TestResponseErrorContainsStatus(t *testing.T) {
 	t.Parallel()
 
@@ -100,4 +130,3 @@ func TestResponseErrorContainsStatus(t *testing.T) {
 		t.Fatalf("unexpected error text: %v", err)
 	}
 }
-
