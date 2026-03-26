@@ -8,6 +8,8 @@ terraform {
 
 locals {
   http_domain = var.http_domain != "" ? var.http_domain : var.domain_name
+  tcp_domain  = var.tcp_domain != "" ? var.tcp_domain : var.domain_name
+  tcp_port    = var.tcp_port > 0 ? var.tcp_port : null
 }
 
 resource "wiredoor_node" "this" {
@@ -20,8 +22,8 @@ resource "wiredoor_node" "this" {
 resource "wiredoor_domain" "this" {
   count = var.domain_name != "" ? 1 : 0
 
-  domain           = var.domain_name
-  ssl              = var.domain_ssl
+  domain          = var.domain_name
+  ssl             = var.domain_ssl
   authentication   = var.domain_authentication
   allowed_emails   = var.domain_allowed_emails
   skip_validation  = var.domain_skip_validation
@@ -42,4 +44,21 @@ resource "wiredoor_http_service" "this" {
   domain        = local.http_domain
   enabled       = var.http_enabled
   require_auth  = var.http_require_auth
+}
+
+resource "wiredoor_tcp_service" "this" {
+  count = var.tcp_enabled ? 1 : 0
+
+  node_id      = wiredoor_node.this.id
+  name         = var.tcp_name
+  domain       = local.tcp_domain
+  proto        = var.tcp_proto
+  backend_host = var.tcp_backend_host
+  backend_port = var.tcp_backend_port
+  port         = local.tcp_port
+  ssl          = var.tcp_ssl
+  allowed_ips  = var.tcp_allowed_ips
+  blocked_ips  = var.tcp_blocked_ips
+  enabled      = var.tcp_enabled
+  ttl          = var.tcp_ttl
 }

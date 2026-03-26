@@ -83,3 +83,58 @@ variable "http_require_auth" {
   type    = bool
   default = false
 }
+
+variable "tcp_allowed_ips" {
+  type    = list(string)
+  default = []
+}
+
+variable "tcp_backend_host" {
+  type    = string
+  default = ""
+}
+
+variable "tcp_backend_port" {
+  type    = number
+  default = 0
+}
+
+variable "tcp_blocked_ips" {
+  type    = list(string)
+  default = []
+}
+
+variable "tcp_domain" {
+  type    = string
+  default = ""
+}
+
+variable "tcp_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "tcp_name" {
+  type    = string
+  default = ""
+}
+
+variable "tcp_port" {
+  type    = number
+  default = 0
+}
+
+variable "tcp_proto" {
+  type    = string
+  default = "tcp"
+}
+
+variable "tcp_ssl" {
+  type    = bool
+  default = false
+}
+
+variable "tcp_ttl" {
+  type    = string
+  default = ""
+}

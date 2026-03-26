@@ -50,10 +50,12 @@ The `opentofu/module` directory provides a small wrapper that creates:
 - one node PAT
 - one HTTP service
 - an optional domain resource for SSL/certificate settings
+- an optional TCP service
 
 The basic example in `opentofu/examples/basic` shows how to wire the module into a root configuration.
 
 The module defaults to `self-signed` domain SSL when `domain_name` is set. Set `domain_ssl = "certbot"` for public domains that should use Let's Encrypt.
+Set `tcp_enabled = true` to create a TCP service alongside the HTTP service.
 
 ## Notes
 

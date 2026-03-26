@@ -46,3 +46,23 @@ variable "http_path" {
 variable "http_port" {
   type = number
 }
+
+variable "tcp_backend_port" {
+  type    = number
+  default = 0
+}
+
+variable "tcp_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "tcp_name" {
+  type    = string
+  default = ""
+}
+
+variable "tcp_port" {
+  type    = number
+  default = 0
+}

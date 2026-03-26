@@ -14,3 +14,7 @@ output "domain_id" {
 output "http_service_id" {
   value = wiredoor_http_service.this.id
 }
+
+output "tcp_service_id" {
+  value = try(wiredoor_tcp_service.this[0].id, null)
+}
