@@ -76,7 +76,7 @@ RUN apk add --no-cache py3-pip build-base curl \
   && pip install --no-cache-dir supervisor \
   && python3 -m venv /opt/certbot/ \
   && /opt/certbot/bin/pip install --upgrade pip \
-  && /opt/certbot/bin/pip install certbot \
+  && /opt/certbot/bin/pip install certbot certbot-dns-cloudflare \
   && mkdir -p /install/site-packages \
   && cp -r /usr/local/lib/python3.12/site-packages/supervisor /install/site-packages/ \
   && cp -r /usr/local/lib/python3.12/site-packages/supervisor-*.dist-info /install/site-packages/

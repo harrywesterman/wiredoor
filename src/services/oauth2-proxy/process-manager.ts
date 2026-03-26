@@ -5,6 +5,7 @@ import config from '../../config';
 import CLI from '../../utils/cli';
 import FileManager from '../../utils/file-manager';
 import { Logger } from '../../logger';
+import DomainUtils from '../../utils/domain-utils';
 
 const getGeneratedKey = (domain: string): string => {
   const dir = `/data/oauth2`;
@@ -29,15 +30,17 @@ export class ProcessManager {
     domain: Domain,
     restart: boolean = false,
   ): Promise<void> {
-    const secret = getGeneratedKey(domain.domain);
+    const filesystemDomainKey = DomainUtils.getFilesystemDomainKey(domain.domain);
+    const cookieDomain = DomainUtils.getRootDomain(domain.domain);
+    const secret = getGeneratedKey(filesystemDomainKey);
 
     FileManager.mkdirSync('/opt/oauth2-proxy');
-    FileManager.mkdirSync(`${config.nginx.logs}/${domain.domain}`);
+    FileManager.mkdirSync(`${config.nginx.logs}/${filesystemDomainKey}`);
     const hasEmails =
       domain.oauth2Config.allowedEmails && domain.oauth2Config.allowedEmails[0];
     if (hasEmails) {
       await FileManager.saveToFile(
-        `/opt/oauth2-proxy/${domain.domain}-emails`,
+        `/opt/oauth2-proxy/${filesystemDomainKey}-emails`,
         domain.oauth2Config.allowedEmails.join('\n'),
         'utf-8',
         0o644,
@@ -45,21 +48,20 @@ export class ProcessManager {
     }
 
     const processFile = `[program:oauth2-proxy-d${domain.id}]
-command=sh -c 'source /etc/environment && /usr/bin/oauth2-proxy --skip-provider-button=true --cookie-csrf-per-request=true --cookie-samesite=lax'
+command=sh -c 'source /etc/environment && /usr/bin/oauth2-proxy --skip-provider-button=true --reverse-proxy=true --cookie-csrf-per-request=true --cookie-samesite=lax'
 environment=
   OAUTH2_PROXY_HTTP_ADDRESS="127.0.0.1:${domain.oauth2ServicePort}",
-  OAUTH2_PROXY_COOKIE_DOMAINS="${domain.domain}",
+  OAUTH2_PROXY_COOKIE_DOMAINS="${cookieDomain}",
   OAUTH2_PROXY_COOKIE_SECRET="${secret}",
-  OAUTH2_PROXY_REDIRECT_URL="https://${domain.domain}/oauth2/callback",
-  ${hasEmails ? `OAUTH2_PROXY_AUTHENTICATED_EMAILS_FILE="/opt/oauth2-proxy/${domain.domain}-emails"` : ''}
+  ${hasEmails ? `OAUTH2_PROXY_AUTHENTICATED_EMAILS_FILE="/opt/oauth2-proxy/${filesystemDomainKey}-emails"` : ''}
 autorestart=true
 stopsignal=KILL
 stopasgroup=true
 killasgroup=true
 redirect_stderr=true
 redirect_stdout=true
-stdout_logfile=${config.nginx.logs}/${domain.domain}/oauth2-proxy.stdout.log
-stderr_logfile=${config.nginx.logs}/${domain.domain}/oauth2-proxy.stderr.log`;
+stdout_logfile=${config.nginx.logs}/${filesystemDomainKey}/oauth2-proxy.stdout.log
+stderr_logfile=${config.nginx.logs}/${filesystemDomainKey}/oauth2-proxy.stderr.log`;
 
     await FileManager.saveToFile(
       `/etc/supervisor/conf.d/oauth2-proxy-d${domain.id}.conf`,
@@ -77,12 +79,14 @@ stderr_logfile=${config.nginx.logs}/${domain.domain}/oauth2-proxy.stderr.log`;
     domain: Domain,
     restart: boolean = true,
   ): Promise<void> {
+    const filesystemDomainKey = DomainUtils.getFilesystemDomainKey(domain.domain);
+
     await Promise.all([
       FileManager.removeFile(
         `/etc/supervisor/conf.d/oauth2-proxy-d${domain.id}.conf`,
       ),
-      FileManager.removeFile(`/opt/oauth2-proxy/${domain.domain}-emails`),
-      FileManager.removeFile(`/data/oauth2/.cookie-secret-${domain.domain}`),
+      FileManager.removeFile(`/opt/oauth2-proxy/${filesystemDomainKey}-emails`),
+      FileManager.removeFile(`/data/oauth2/.cookie-secret-${filesystemDomainKey}`),
     ]);
 
     if (restart) {

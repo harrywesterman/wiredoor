@@ -31,6 +31,7 @@ import { DomainQueryFilter } from '../../repositories/filters/domain-query-filte
 import { PagedData } from '../../repositories/filters/repository-query-filter';
 import { HttpService } from '../../database/models/http-service';
 import ServerUtils from '../../utils/server';
+import DomainUtils from '../../utils/domain-utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
@@ -277,6 +278,37 @@ describe('HTTP Services Service', () => {
 
       expect(mockSaveToFile).toHaveBeenCalledWith(
         `/etc/nginx/locations/${serviceData.domain}/__main.conf`,
+        expect.stringContaining(
+          `${serviceData.backendProto}://$node${node.id}service${result.id}:${serviceData.backendPort}`,
+        ),
+      );
+    });
+
+    it('should create HTTP Service for a wildcard domain using safe filesystem paths', async () => {
+      const wildcardDomain = '*.example.com';
+      const filesystemDomainKey =
+        DomainUtils.getFilesystemDomainKey(wildcardDomain);
+
+      await domainService.createDomain({
+        domain: wildcardDomain,
+        ssl: 'self-signed',
+      });
+
+      jest.clearAllMocks();
+
+      const serviceData = makeHttpServiceData({
+        domain: wildcardDomain,
+      });
+
+      const result = await service.createHttpService(node.id, serviceData);
+
+      expect(result.domain).toEqual(wildcardDomain);
+      expect(mockSaveToFile).toHaveBeenCalledWith(
+        `/etc/nginx/conf.d/${filesystemDomainKey}.conf`,
+        expect.stringContaining(` ${wildcardDomain};`),
+      );
+      expect(mockSaveToFile).toHaveBeenCalledWith(
+        `/etc/nginx/locations/${filesystemDomainKey}/__main.conf`,
         expect.stringContaining(
           `${serviceData.backendProto}://$node${node.id}service${result.id}:${serviceData.backendPort}`,
         ),
