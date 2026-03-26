@@ -185,12 +185,8 @@ func setNodeState(d *schema.ResourceData, n *node) diag.Diagnostics {
 	_ = d.Set("is_local", n.IsLocal)
 	_ = d.Set("created_at", formatTime(n.CreatedAt))
 	_ = d.Set("updated_at", formatTime(n.UpdatedAt))
-	if len(n.GatewayNetworks) > 0 {
-		_ = d.Set("gateway_networks", gatewayNetworksFromAPI(n.GatewayNetworks))
-	}
-	if n.Token != "" {
-		_ = d.Set("token", n.Token)
-	}
+	_ = d.Set("gateway_networks", gatewayNetworksFromAPI(n.GatewayNetworks))
+	_ = d.Set("token", n.Token)
 	return nil
 }
 

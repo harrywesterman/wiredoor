@@ -40,6 +40,56 @@ func TestNodePayloadMapping(t *testing.T) {
 	}
 }
 
+func TestNodeReadRefreshClearsDerivedValues(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/nodes/7" {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":              7,
+			"name":            "node-a",
+			"address":         "10.0.0.2",
+			"enabled":         true,
+			"advanced":        false,
+			"isGateway":       true,
+			"gatewayNetworks": []map[string]interface{}{},
+		})
+	}))
+	defer srv.Close()
+
+	client, err := NewClient(providerConfig{Endpoint: srv.URL, Token: "token"})
+	if err != nil {
+		t.Fatalf("new client: %v", err)
+	}
+
+	d := testResourceData(t, resourceNode(), map[string]interface{}{
+		"name":             "node-a",
+		"address":          "10.0.0.2",
+		"enabled":          true,
+		"is_gateway":       true,
+		"gateway_networks": []interface{}{map[string]interface{}{"interface": "eth1", "subnet": "10.1.0.0/24"}},
+		"token":            "stale-token",
+	})
+	d.SetId("7")
+
+	diags := resourceNodeRead(context.Background(), d, client)
+	if diags.HasError() {
+		t.Fatalf("read node: %v", diags)
+	}
+
+	if got := d.Get("token").(string); got != "" {
+		t.Fatalf("expected token to be cleared, got %q", got)
+	}
+	if got := d.Get("gateway_networks").([]interface{}); len(got) != 0 {
+		t.Fatalf("expected gateway networks to be cleared, got %#v", got)
+	}
+}
+
 func TestHTTPServicePayloadAndImport(t *testing.T) {
 	t.Parallel()
 
