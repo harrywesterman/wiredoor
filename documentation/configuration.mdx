@@ -24,8 +24,6 @@ The token must include at least:
 
 - **Zone → DNS → Edit**
 
-The same token is also used for wildcard Let’s Encrypt certificates via DNS-01 validation.
-
 You can create a token at [https://dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens).
 
 Make sure the token has access only to the specific zones you intend to manage for improved security.
@@ -33,7 +31,7 @@ Make sure the token has access only to the specific zones you intend to manage f
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
 | `DNS_PROVIDER` | Set to `cloudflare` to enable Cloudflare DNS integration |  ❌ Optional | `cloudflare` |
-| `CLOUDFLARE_API_TOKEN` | API token with DNS edit permissions and wildcard DNS-01 certificate support |  ❌ Optional | `01ab23cd45ef6789ghij0123klmn4567opqrs890tuvwx` |
+| `CLOUDFLARE_API_TOKEN` | API token with DNS edit permissions |  ❌ Optional | `01ab23cd45ef6789ghij0123klmn4567opqrs890tuvwx` |
 
 ### GoDaddy
 

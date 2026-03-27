@@ -41,7 +41,7 @@ const sslOptions = [
           field="domain"
           label="Domain"
           placeholder="example.com"
-          description="Enter the domain name that should resolve to the specified IP address. Wildcards like *.example.com are supported when Let's Encrypt uses Cloudflare DNS-01."
+          description="Enter the domain name that should resolve to the specified IP address."
           :errors="errors"
           required
           @blur="(e) => validateField('domain')"
@@ -69,7 +69,7 @@ const sslOptions = [
           v-model="formData.ssl"
           field="ssl"
           label="SSL Certificate Type"
-          description="Select the SSL certificate type for this domain. Wildcard domains require Let's Encrypt with Cloudflare DNS-01; if validation is skipped, only self-signed certificates will be available."
+          description="Select the SSL certificate type for this domain. If validation is skipped, only self-signed certificates will be available."
           :options="sslOptions"
           :disabled="formData.skipValidation"
           :message="formData.skipValidation ? 'Self-Signed when skipping domain validation' : undefined"

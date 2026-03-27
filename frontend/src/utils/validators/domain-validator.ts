@@ -18,7 +18,7 @@ export interface Domain extends DomainForm {
 
 export const domainValidator: ObjectSchema<DomainForm> = Joi.object({
   domain: Joi.string()
-    .pattern(new RegExp(`^(\\*\\.)?([a-zA-Z0-9-]+\\.)+([a-zA-Z]{2,})$`), 'domain')
+    .pattern(new RegExp(`^([a-zA-Z0-9-]+\\.)+([a-zA-Z]{2,})$`), 'domain')
     .required()
     .messages({
       'string.pattern.any': 'The domain must be in a valid format',

@@ -21,8 +21,6 @@ import { HttpServicesService } from './http-services-service';
 import { NginxDomainService } from './proxy-server/nginx-domain-service';
 import { DNSService } from './dns/dns-service';
 import Net from '../utils/net';
-import DomainUtils from '../utils/domain-utils';
-import { In } from 'typeorm';
 
 @Service()
 export class DomainsService {
@@ -35,44 +33,6 @@ export class DomainsService {
   ) {
     this.nginxDomainService = new NginxDomainService();
     this.dnsService = Container.get(DNSService);
-  }
-
-  private isWildcardDomain(domain: string): boolean {
-    return !!domain && domain.startsWith('*.');
-  }
-
-  private getDnsVerificationDomain(domain: string): string {
-    if (this.isWildcardDomain(domain)) {
-      return `wiredoor-verify.${domain.slice(2)}`;
-    }
-
-    return domain;
-  }
-
-  private getCertbotFamilyCandidates(domain: string): string[] {
-    const rootDomain = DomainUtils.getRootDomain(domain);
-
-    if (DomainUtils.isWildcardDomain(domain)) {
-      return [rootDomain, domain];
-    }
-
-    return [rootDomain, `*.${rootDomain}`];
-  }
-
-  private async hasSharedCertbotFamilyMember(domain: string): Promise<boolean> {
-    const candidates = this.getCertbotFamilyCandidates(domain).filter(
-      (candidate) => candidate !== domain,
-    );
-
-    if (!candidates.length) {
-      return false;
-    }
-
-    return (
-      (await this.domainRepository.countBy({
-        domain: In(candidates),
-      })) > 0
-    );
   }
 
   private async addDnsRecordForDomain(domain: string): Promise<boolean> {
@@ -100,9 +60,7 @@ export class DomainsService {
           });
         }
         try {
-          const verificationDomain = this.getDnsVerificationDomain(domain);
-
-          await this.dnsService.waitUntilResolvesTo(verificationDomain, realIp, {
+          await this.dnsService.waitUntilResolvesTo(domain, realIp, {
             timeoutMs: 30_000,
             intervalMs: 1_000,
           });
@@ -180,27 +138,6 @@ export class DomainsService {
     if (instance) {
       return instance;
     }
-
-    if (DomainUtils.isWildcardDomain(domain)) {
-      const canUseCloudflareWildcardCerts =
-        config.dns.provider === 'cloudflare' && !!config.dns.cloudflareApiToken;
-
-      const newDomain = canUseCloudflareWildcardCerts
-        ? await this.addDnsRecordForDomain(domain)
-        : false;
-
-      return this.createDomain(
-        {
-          domain,
-          ssl:
-            canUseCloudflareWildcardCerts && newDomain
-              ? SSLTermination.Certbot
-              : SSLTermination.SelfSigned,
-        },
-        false,
-      );
-    }
-
     let newDomain = false;
     const resolveThisServer = await pointToThisServer(domain);
 
@@ -294,15 +231,12 @@ export class DomainsService {
 
   public async deleteDomain(id: number): Promise<string> {
     const domain = await this.getDomain(id);
-    const shouldDeleteCertificate = !(await this.hasSharedCertbotFamilyMember(
-      domain.domain,
-    ));
 
     if (domain.oauth2ServicePort) {
       await ProcessManager.removeOauthProcess(domain);
     }
 
-    await this.nginxDomainService.remove(domain, true, shouldDeleteCertificate);
+    await this.nginxDomainService.remove(domain);
 
     await this.domainRepository.delete(id);
 

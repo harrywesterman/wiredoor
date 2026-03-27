@@ -77,7 +77,6 @@ export default {
   },
   dns: {
     provider: process.env.DNS_PROVIDER || null,
-    cloudflareApiToken: process.env.CLOUDFLARE_API_TOKEN || null,
   },
   nginx: {
     bodySize: process.env.NGINX_CLIENT_MAX_BODY_SIZE || '100m',

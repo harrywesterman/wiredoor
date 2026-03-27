@@ -4,11 +4,10 @@ import { randomBytes } from 'crypto';
 import { setTimeout as delay } from 'timers/promises';
 import config from '../config';
 import FileManager from './file-manager';
-import DomainUtils from './domain-utils';
 
 export default class ServerUtils {
   static getLogsDir(domain: string): string {
-    const dom = DomainUtils.getFilesystemDomainKey(domain);
+    const dom = !domain || domain == '_' ? 'default' : domain;
     return path.join(config.nginx.logs, dom);
   }
 

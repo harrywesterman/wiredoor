@@ -35,7 +35,6 @@ import { PagedData } from '../../repositories/filters/repository-query-filter';
 import { faker } from '@faker-js/faker';
 import { Server } from 'http';
 import ServerUtils from '../../utils/server';
-import DomainUtils from '../../utils/domain-utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
@@ -351,34 +350,6 @@ describe('TCP Services Service', () => {
         ['nginx -t'],
         ['nginx -s reload'],
       ]);
-    });
-
-    it('should create TCP Service for a wildcard domain using safe self-signed cert paths', async () => {
-      const wildcardDomain = '*.example.com';
-      const filesystemDomainKey =
-        DomainUtils.getFilesystemDomainKey(wildcardDomain);
-
-      await domainService.createDomain({
-        domain: wildcardDomain,
-        ssl: SSLTermination.SelfSigned,
-      });
-
-      jest.clearAllMocks();
-
-      const serviceData = makeTcpServiceData({
-        domain: wildcardDomain,
-        ssl: true,
-      });
-
-      const result = await service.createTcpService(node.id, serviceData);
-
-      expect(result.domain).toEqual(wildcardDomain);
-      expect(mockSaveToFile).toHaveBeenCalledWith(
-        `/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`,
-        expect.stringContaining(
-          ` /etc/nginx/ssl/${filesystemDomainKey}/privkey.key;`,
-        ),
-      );
     });
   });
 
